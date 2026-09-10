@@ -1,5 +1,8 @@
 {
     "cSpell.words": [
         "funbox"
+    ],
+    "clangd.arguments": [
+        "--compile-commands-dir=build"
     ]
 }

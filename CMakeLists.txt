@@ -5,17 +5,21 @@ project(FunBox
     LANGUAGES CXX
 )
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Core Library
 
 add_library(funbox
     src/core/Clock.cpp
+    src/snake/SnakeGame.cpp
 )
 
 target_include_directories(funbox
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+    PUBLIC 
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/snake
 )
 
 # GoogleTest
@@ -33,7 +37,8 @@ enable_testing()
 # Tests
 
 add_executable(funbox_tests
-    tests/ClockTest.cpp
+    tests/core/ClockTest.cpp
+    tests/snake/SnakeGameTest.cpp
 )
 
 target_include_directories(funbox_tests
