@@ -1,27 +1,23 @@
 #include "snake/SnakeGame.h"
 
 SnakeGame::SnakeGame()
-    : _head{0, 0},
+    : _body{
+        {2, 0},
+        {1, 0},
+        {0, 0}
+      },
       _direction(Direction::Right) {}
 
+Position SnakeGame::head() const {
+    return _body.front();
+}
+
+
 void SnakeGame::update() {
-    switch (_direction) {
-        case Direction::Up:
-            _head.y--;
-            break;
+    const auto newHead = head() + _direction;
 
-        case Direction::Down:
-            _head.y++;
-            break;
-
-        case Direction::Left:
-            _head.x--;
-            break;
-
-        case Direction::Right:
-            _head.x++;
-            break;
-    }
+    _body.insert(_body.begin(), newHead);
+    _body.pop_back();
 }
 
 void SnakeGame::setDirection(Direction direction) {
@@ -32,6 +28,6 @@ void SnakeGame::setDirection(Direction direction) {
     _direction = direction;
 }
 
-Position SnakeGame::head() const {
-    return _head;
+const SnakeBody& SnakeGame::body() const {
+    return _body;
 }

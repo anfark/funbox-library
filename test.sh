@@ -1,5 +1,7 @@
 #! /bin/bash
 
+set -euo pipefail
+
 # Rebuild project
 cmake --build build
 

@@ -9,8 +9,7 @@ TEST(SnakeGameTest, MovesOneCellToTheRightOnUpdate) {
 
     game.update();
 
-    EXPECT_EQ(game.head().x, initialHead.x + 1);
-    EXPECT_EQ(game.head().y, initialHead.y);
+    EXPECT_EQ(game.head(), initialHead + Direction::Right);
 }
 
 TEST(SnakeGameTest, MovesUpAfterChangingDirection) {
@@ -22,15 +21,31 @@ TEST(SnakeGameTest, MovesUpAfterChangingDirection) {
 
     game.update();
 
-    EXPECT_EQ(game.head().x, initialHead.x);
-    EXPECT_EQ(game.head().y, initialHead.y - 1);
+    EXPECT_EQ(game.head(), initialHead + Direction::Up);
 }
 
 TEST(SnakeGameTest, CannotReverseDirection) {
     SnakeGame game;
 
+    const auto initialHead = game.head();
+
     game.setDirection(Direction::Left);
     game.update();
 
-    EXPECT_EQ(game.head().x, 1);
+    EXPECT_EQ(game.head(), initialHead + Direction::Right);
+}
+
+TEST(SnakeGameTest, MovesBodyOneCellToTheRightOnUpdate) {
+    SnakeGame game;
+
+    game.update();
+
+    EXPECT_EQ(
+        game.body(),
+        (SnakeBody{
+            {3, 0},
+            {2, 0},
+            {1, 0}
+        })
+    );
 }

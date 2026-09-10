@@ -1,11 +1,12 @@
 #pragma once
+#include <vector>
 
 #include "snake/Direction.h"
+#include "snake/Position.h"
 
-struct Position {
-    int x;
-    int y;
-};
+
+
+using SnakeBody = std::vector<Position>;
 
 class SnakeGame {
 public:
@@ -15,8 +16,9 @@ public:
     void setDirection(Direction direction);
 
     Position head() const;
+    const SnakeBody& body() const;
 
 private:
-    Position _head;
+    SnakeBody _body;
     Direction _direction;
 };
