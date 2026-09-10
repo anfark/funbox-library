@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Direction.h"
+#include "snake/Direction.h"
 
 struct Position {
     int x;

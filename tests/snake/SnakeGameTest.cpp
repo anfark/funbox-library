@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "SnakeGame.h"
+#include "snake/SnakeGame.h"
 
 TEST(SnakeGameTest, MovesOneCellToTheRightOnUpdate) {
     SnakeGame game;

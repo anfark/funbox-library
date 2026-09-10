@@ -1,4 +1,4 @@
-#include "SnakeGame.h"
+#include "snake/SnakeGame.h"
 
 SnakeGame::SnakeGame()
     : _head{0, 0},

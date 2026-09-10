@@ -17,9 +17,7 @@ add_library(funbox
 )
 
 target_include_directories(funbox
-    PUBLIC 
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/core
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/snake
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 # GoogleTest

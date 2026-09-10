@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include "TimeSource.h"
-#include "Tick.h"
+#include "core/TimeSource.h"
+#include "core/Tick.h"
 
 class ClockListener {
 public:

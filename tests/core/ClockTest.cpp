@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "Clock.h"
+#include "core/Clock.h"
 #include "FakeTimeSource.h"
 
 class TestListener : public ClockListener {
