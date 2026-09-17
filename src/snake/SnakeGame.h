@@ -1,24 +1,72 @@
+/*
 #pragma once
+#include <functional>
+#include <optional>
+#include <variant>
 #include <vector>
 
 #include "snake/Direction.h"
 #include "snake/Position.h"
+#include "snake/Size.h"
 
 
+using GeneratePosition = std::function<Position(Size size)>;
+
+struct GameConfig {
+    Size bounds;
+    GeneratePosition generatePosition;
+
+    Position generatePositionInBounds() const {
+        return generatePosition(bounds);
+    }
+};
 
 using SnakeBody = std::vector<Position>;
 
-class SnakeGame {
+struct Snake {
+    Position head;
+    SnakeBody rest;
+};
+
+struct GameState {
+    Snake snake;
+    Direction direction;
+    Position food;
+};
+
+struct ChangeDirection {
+    Direction newDirection;
+};
+
+struct Move {};
+
+using GameAction = std::variant<
+    Move, 
+    ChangeDirection
+>;
+
+struct DidEatFruit {};
+
+using GameEvent = std::variant<
+    DidEatFruit
+>;
+
+using EventQueue = std::vector<GameEvent>;
+
+class Game {
 public:
-    SnakeGame();
+    explicit Game(GameConfig config);
+    
+    void action(const GameAction& action);
 
-    void update();
-    void setDirection(Direction direction);
-
-    Position head() const;
-    const SnakeBody& body() const;
+    const GameState& state() const;
+    std::optional<GameEvent> nextEvent();
 
 private:
-    SnakeBody _body;
-    Direction _direction;
+    const GameConfig _config;
+    GameState _state;
+    EventQueue _queue;
+
+    void _event(GameEvent event);
 };
+*/

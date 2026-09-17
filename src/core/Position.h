@@ -1,18 +1,22 @@
 #pragma once
 
-#include "snake/Position.h"
+#include "snake/Direction.h"
 
-enum class Direction {
-    Up    = 0,
-    Left  = 1,
-    Down  = 2,
-    Right = 3
+struct Position {
+    int x;
+    int y;
+
+    bool operator==(const Position&) const = default;
+    static const Position Zero;
 };
 
-constexpr Direction inverseDirection(Direction direction) {
-    return static_cast<Direction>(
-        (static_cast<int>(direction) + 2) % 4
-    );
+inline const Position Position::Zero{0, 0};
+
+constexpr Position operator+(Position lhs, Position rhs) {
+    return {
+        lhs.x + rhs.x,
+        lhs.y + rhs.y
+    };
 }
 
 constexpr Position offset(Direction direction) {
@@ -35,4 +39,9 @@ constexpr Position offset(Direction direction) {
 
 constexpr Position operator+(Position position, Direction direction) {
     return position + offset(direction);
+}
+
+constexpr Position& operator+=(Position& position, Direction direction) {
+    position = position + direction;
+    return position;
 }
