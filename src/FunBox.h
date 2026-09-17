@@ -13,6 +13,41 @@
 #include "runtime/Settings.h"
 
 
+struct FunBoxConfig {
+  StickPin stick;
+  MatrixConfig matrix;
+  ScreenConfig screen;
+  AudioConfig audio;
+};
+
+
+inline constexpr FunBoxConfig DEFAULT_FUNBOX_CONFIG = {
+  .stick = {
+    .up = 0,
+    .down = 1,
+    .left = 2,
+    .right = 3,
+    .mid = 10,
+    .set = 20,
+    .reset = 21,
+  },
+  .matrix = {
+    .dataPin = 4,
+    .brightness = 2,
+  },
+  .screen = {
+    .sdaPin = 8,
+    .sclPin = 9,
+  },
+  .audio = {
+    .bclkPin = 6,
+    .lrcPin = 5,
+    .doutPin = 7,
+    .volume = 3,
+  },
+};
+
+
 enum class FunBoxState {
   Boot,
   MainMenu,
@@ -24,6 +59,7 @@ enum class FunBoxState {
 class FunBox {
 public:
   FunBox();
+  explicit FunBox(const FunBoxConfig& config);
 
   void setup();
   void update();
