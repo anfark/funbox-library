@@ -1,4 +1,4 @@
-#include "stick.h"
+#include "Stick.h"
 
 #include <Arduino.h>
 
