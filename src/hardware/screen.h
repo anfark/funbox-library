@@ -6,3 +6,4 @@
 struct ScreenConfig {
   uint8_t sdaPin, sclPin;
 };
+
