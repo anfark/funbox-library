@@ -1,6 +1,5 @@
 #include "FunBox.h"
 
-
 FunBox::FunBox()
   : _stick({
       .up = 0,
@@ -14,7 +13,7 @@ FunBox::FunBox()
 
     _matrix({
       .dataPin = 4,
-      .brightness = 8,
+      .brightness = 2,
     }),
 
     _screen({
@@ -26,6 +25,7 @@ FunBox::FunBox()
       .bclkPin = 6,
       .lrcPin = 5,
       .doutPin = 7,
+      .volume = 3,
     }),
 
     _bootSequence(
@@ -40,7 +40,10 @@ FunBox::FunBox()
     ),
 
     _settings(
-      _screen
+      _screen,
+      _stick,
+      _matrix,
+      _audio
     ) {
 }
 
@@ -50,15 +53,46 @@ FunBox::FunBox()
 // ==================================================
 
 void FunBox::setup() {
+  Serial.println();
+  Serial.println("=== FunBox setup ===");
+
+  Serial.println("[1] Stick setup...");
   _stick.setup();
+  Serial.println("[1] Stick OK");
+
+  Serial.println("[2] Matrix setup...");
   _matrix.setup();
+  Serial.println("[2] Matrix OK");
+
+  Serial.println("[3] Screen setup...");
   _screen.setup();
+  Serial.println("[3] Screen OK");
+
+  Serial.println("[4] Audio setup...");
   _audio.setup();
+  Serial.println("[4] Audio OK");
+
+  Serial.println("[5] Settings setup...");
+  _settings.setup();
+  Serial.println("[5] Settings OK");
+
+  Serial.print("    Brightness: ");
+  Serial.println(_matrix.brightness());
+
+  Serial.print("    Volume: ");
+  Serial.println(_audio.volume());
+
+  Serial.println("[6] MainMenu setup...");
 
   _mainMenu.setGames(
     _games,
     _gameCount
   );
+
+  Serial.print("    Games: ");
+  Serial.println(_gameCount);
+
+  Serial.println("[6] MainMenu OK");
 
   _setWasPressed =
     _stick.isPressed(StickKey::SET);
@@ -66,7 +100,17 @@ void FunBox::setup() {
   _resetWasPressed =
     _stick.isPressed(StickKey::RESET);
 
+  Serial.print("SET pressed at startup: ");
+  Serial.println(_setWasPressed ? "yes" : "no");
+
+  Serial.print("RESET pressed at startup: ");
+  Serial.println(_resetWasPressed ? "yes" : "no");
+
+  Serial.println("[7] Enter boot...");
   enterBoot();
+  Serial.println("[7] Boot started");
+
+  Serial.println("=== FunBox setup finished ===");
 }
 
 
@@ -103,7 +147,11 @@ void FunBox::update() {
 // ==================================================
 
 bool FunBox::addGame(Game& game) {
+  Serial.print("Adding game: ");
+  Serial.println(game.name());
+
   if (_gameCount >= MAX_GAMES) {
+    Serial.println("ERROR: Maximum game count reached");
     return false;
   }
 
@@ -115,12 +163,16 @@ bool FunBox::addGame(Game& game) {
     _gameCount
   );
 
+  Serial.print("Game count: ");
+  Serial.println(_gameCount);
+
   return true;
 }
 
 
 void FunBox::updateGame() {
   if (_activeGame == nullptr) {
+    Serial.println("ERROR: Game state without active game");
     enterMainMenu();
     return;
   }
@@ -130,6 +182,9 @@ void FunBox::updateGame() {
 
 
 void FunBox::enterGame(Game& game) {
+  Serial.print("Entering game: ");
+  Serial.println(game.name());
+
   _activeGame = &game;
   _state = FunBoxState::Game;
 
@@ -141,6 +196,9 @@ void FunBox::stopActiveGame() {
   if (_activeGame == nullptr) {
     return;
   }
+
+  Serial.print("Stopping game: ");
+  Serial.println(_activeGame->name());
 
   _activeGame->stop(*this);
   _activeGame = nullptr;
@@ -168,17 +226,21 @@ bool FunBox::processSystemInput() {
   _resetWasPressed = resetPressed;
 
 
-  // RESET hat immer Vorrang.
   if (resetJustPressed) {
+    Serial.println("RESET pressed -> Boot");
     enterBoot();
     return true;
   }
 
 
   if (setJustPressed) {
+    Serial.println("SET pressed");
+
     if (_state == FunBoxState::Settings) {
+      Serial.println("Closing settings");
       closeSettings();
     } else {
+      Serial.println("Opening settings");
       enterSettings();
     }
 
@@ -198,19 +260,26 @@ void FunBox::updateBoot() {
   _bootSequence.update();
 
   if (_bootSequence.finished()) {
+    Serial.println("Boot sequence finished -> MainMenu");
     enterMainMenu();
   }
 }
 
 
 void FunBox::enterBoot() {
+  Serial.println("enterBoot()");
+
   stopActiveGame();
 
   _state = FunBoxState::Boot;
 
+  Serial.println("Stopping audio...");
   _audio.stop();
 
+  Serial.println("Starting boot sequence...");
   _bootSequence.start();
+
+  Serial.println("Boot sequence started");
 }
 
 
@@ -225,9 +294,11 @@ void FunBox::updateMainMenu() {
     return;
   }
 
-  Game* game = _mainMenu.selectedGame();
+  Game* game =
+    _mainMenu.selectedGame();
 
   if (game == nullptr) {
+    Serial.println("ERROR: MainMenu selected null game");
     return;
   }
 
@@ -236,6 +307,8 @@ void FunBox::updateMainMenu() {
 
 
 void FunBox::enterMainMenu() {
+  Serial.println("enterMainMenu()");
+
   _state = FunBoxState::MainMenu;
 
   _mainMenu.start();
@@ -252,10 +325,12 @@ void FunBox::updateSettings() {
 
 
 void FunBox::enterSettings() {
-  // Settings waehrend der Bootsequenz machen wenig Sinn.
   if (_state == FunBoxState::Boot) {
+    Serial.println("Ignoring settings during boot");
     return;
   }
+
+  Serial.println("enterSettings()");
 
   _stateBeforeSettings = _state;
   _state = FunBoxState::Settings;
@@ -265,27 +340,34 @@ void FunBox::enterSettings() {
 
 
 void FunBox::closeSettings() {
+  Serial.println("closeSettings()");
+
   switch (_stateBeforeSettings) {
     case FunBoxState::MainMenu:
+      Serial.println("Return to MainMenu");
       enterMainMenu();
       break;
 
     case FunBoxState::Game: {
+      Serial.println("Return to Game");
+
       _state = FunBoxState::Game;
-    
+
       auto& display = _screen.display();
-    
+
       display.clearDisplay();
       display.display();
-    
+
       break;
     }
 
     case FunBoxState::Boot:
+      Serial.println("Return to Boot");
       enterBoot();
       break;
 
     case FunBoxState::Settings:
+      Serial.println("Unexpected Settings -> Settings state");
       enterMainMenu();
       break;
   }

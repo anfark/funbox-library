@@ -1,44 +1,133 @@
 #include "Audio.h"
 
+
 Audio::Audio(const AudioConfig& config)
   : _config(config),
-    _info(44100, 2, 16),
-    _sine(config.volume),
-    _source(_sine),
-    _copier(_output, _source) {
+    _volume(config.volume) {
+
+  if (_volume > MAX_VOLUME) {
+    _volume = MAX_VOLUME;
+  }
 }
 
+
 void Audio::setup() {
-  auto config = _output.defaultConfig(TX_MODE);
+  _info = new AudioInfo(
+    44100,
+    2,
+    16
+  );
 
-  config.copyFrom(_info);
+  _output =
+    new I2SStream();
 
-  config.pin_bck = _config.bclkPin;
-  config.pin_ws = _config.lrcPin;
-  config.pin_data = _config.doutPin;
+  _sine =
+    new SineGenerator<int16_t>(
+      amplitude()
+    );
 
-  _output.begin(config);
+  _source =
+    new GeneratedSoundStream<int16_t>(
+      *_sine
+    );
 
-  _sine.begin(
-    _info,
+  _copier =
+    new StreamCopy(
+      *_output,
+      *_source
+    );
+
+
+  auto config =
+    _output->defaultConfig(TX_MODE);
+
+  config.copyFrom(*_info);
+
+  config.pin_bck =
+    _config.bclkPin;
+
+  config.pin_ws =
+    _config.lrcPin;
+
+  config.pin_data =
+    _config.doutPin;
+
+  _output->begin(config);
+
+  _sine->begin(
+    *_info,
     440.0f
   );
 }
+
 
 void Audio::update() {
   if (!_playing) {
     return;
   }
 
-  _copier.copy();
+  if (_volume == 0) {
+    return;
+  }
+
+  if (_copier == nullptr) {
+    return;
+  }
+
+  _copier->copy();
 }
 
+
 void Audio::tone(float frequency) {
-  _sine.setFrequency(frequency);
+  if (_sine == nullptr) {
+    return;
+  }
+
+  _sine->setFrequency(
+    frequency
+  );
+
   _playing = true;
 }
 
+
 void Audio::stop() {
-  _sine.setFrequency(0);
+  if (_sine != nullptr) {
+    _sine->setFrequency(0);
+  }
+
   _playing = false;
+}
+
+
+void Audio::volume(uint8_t value) {
+  if (value > MAX_VOLUME) {
+    value = MAX_VOLUME;
+  }
+
+  _volume = value;
+
+  if (_sine != nullptr) {
+    _sine->setAmplitude(
+      amplitude()
+    );
+  }
+}
+
+
+uint8_t Audio::volume() const {
+  return _volume;
+}
+
+
+int16_t Audio::amplitude() const {
+  return static_cast<int16_t>(
+    (
+      static_cast<int32_t>(
+        MAX_AMPLITUDE
+      )
+      * _volume
+    )
+    / MAX_VOLUME
+  );
 }
