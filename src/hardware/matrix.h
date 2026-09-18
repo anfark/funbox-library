@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <vector>
 
 #include <Adafruit_NeoMatrix.h>
 
@@ -41,10 +42,18 @@ public:
     Color color
   );
 
+  void drawPixels(
+    const std::vector<Position>& positions,
+    Color color
+  );
+
   void show();
 
 
-  void brightness(uint8_t value);
+  void brightness(
+    uint8_t value
+  );
+
   uint8_t brightness() const;
 
 

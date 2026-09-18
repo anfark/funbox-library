@@ -3,38 +3,54 @@
 #include <functional>
 #include <utility>
 
-#include "core/Direction.h"
+#include "BaseGame.h"
 
 
-template<typename State, typename Event>
+template<
+  typename State,
+  typename Event
+>
 class GameUpdate {
 public:
-    using Emit = std::function<void(Event)>;
+  using Emit =
+    std::function<void(Event)>;
 
-    GameUpdate(
-        State& state,
-        Emit emit
-    )
-        : state(state),
-          event(std::move(emit)) {
-    }
+  static constexpr Size bounds =
+    BaseGame::bounds;
 
-    virtual ~GameUpdate() = default;
 
-    virtual void tick() {
-    }
+  GameUpdate(
+    State& state,
+    Emit event
+  )
+    : state(state),
+      event(std::move(event)) {
+  }
 
-    virtual void click() {
-    }
 
-    virtual void move(Direction) {
-    }
+  virtual ~GameUpdate() = default;
 
-    virtual bool isOver() const {
-        return false;
-    }
+
+  virtual void tick() {
+  }
+
+
+  virtual void move(
+    Direction
+  ) {
+  }
+
+
+  virtual void click() {
+  }
+
+
+  virtual bool isOver() const {
+    return false;
+  }
+
 
 protected:
-    State& state;
-    Emit event;
+  State& state;
+  Emit event;
 };

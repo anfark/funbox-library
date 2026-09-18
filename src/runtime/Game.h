@@ -1,94 +1,69 @@
 #pragma once
 
-#include <functional>
 #include <utility>
 #include <vector>
 
-#include "core/Direction.h"
+#include "BaseGame.h"
+#include "GameDevices.h"
 #include "GameRender.h"
 
 
-class RunningGame {
+template<typename Definition>
+class Game
+  : public BaseGame {
+
 public:
-  virtual ~RunningGame() = default;
+  using State =
+    typename Definition::State;
 
-  virtual void reset() = 0;
-  virtual void render() = 0;
+  using Event =
+    typename Definition::Event;
 
-  virtual void tick() = 0;
-  virtual void click() = 0;
-  virtual void move(Direction direction) = 0;
+  using Update =
+    typename Definition::Update;
 
-  virtual bool isOver() const = 0;
-};
+  using Render =
+    typename Definition::Render;
 
-
-template<
-  typename State,
-  typename Event,
-  typename Update,
-  typename Render
->
-class Game : public RunningGame {
-public:
   using Events =
     std::vector<Event>;
 
-  using Emit =
-    std::function<void(Event)>;
 
-
-protected:
   explicit Game(
-    State initialState
+    GameDevices devices
   )
-    : _initialState(initialState),
-      _state(std::move(initialState)) {
+    : _state(
+        Definition::initialState()
+      ),
+
+      _update(
+        _state,
+        [this](Event event) {
+          _events.push_back(
+            std::move(event)
+          );
+        }
+      ),
+
+      _render(
+        devices
+      ) {
   }
 
 
-  State& state() {
-    return _state;
-  }
-
-
-  const State& state() const {
-    return _state;
-  }
-
-
-  Emit emit() {
-    return [this](Event event) {
-      _events.push_back(
-        std::move(event)
-      );
-    };
-  }
-
-
-  void connect(
-    Update& update,
-    Render& render
-  ) {
-    _update = &update;
-    _render = &render;
-  }
-
-
-public:
+  // Erzeugt einen neuen Startzustand des Spiels.
   void reset() override {
-    _state = _initialState;
+    _state =
+      Definition::initialState();
+
     _events.clear();
   }
 
 
+  // Zeichnet den aktuellen Zustand des Spiels.
   void render() override {
-    if (_render == nullptr) {
-      return;
-    }
-
     renderGame(
-      *_render,
+      _render,
       _state,
       _events
     );
@@ -97,30 +72,34 @@ public:
   }
 
 
+  // Zeichnet den finalen Zustand des Spiels.
+  void renderGameOver() override {
+    ::renderGameOver(
+      _render,
+      _state
+    );
+
+    _events.clear();
+  }
+
+
+  // Führt einen Zeitschritt des Spiels aus.
   void tick() override {
     dispatch(
       [this] {
-        _update->tick();
+        _update.tick();
       }
     );
   }
 
 
-  void click() override {
-    dispatch(
-      [this] {
-        _update->click();
-      }
-    );
-  }
-
-
+  // Leitet eine Bewegungsrichtung an das Spiel weiter.
   void move(
     Direction direction
   ) override {
     dispatch(
       [this, direction] {
-        _update->move(
+        _update.move(
           direction
         );
       }
@@ -128,31 +107,34 @@ public:
   }
 
 
+  // Leitet einen Klick an das Spiel weiter.
+  void click() override {
+    dispatch(
+      [this] {
+        _update.click();
+      }
+    );
+  }
+
+
+  // Prüft, ob das Spiel beendet ist.
   bool isOver() const override {
-    return
-      _update != nullptr &&
-      _update->isOver();
+    return _update.isOver();
   }
 
 
 private:
+  // Führt eine Action aus und rendert das Ergebnis.
   template<typename Action>
   void dispatch(
     Action action
   ) {
-    if (
-      _update == nullptr ||
-      _render == nullptr
-    ) {
-      return;
-    }
-
     _events.clear();
 
     action();
 
     renderGame(
-      *_render,
+      _render,
       _state,
       _events
     );
@@ -161,11 +143,10 @@ private:
   }
 
 
-  State _initialState;
   State _state;
 
   Events _events;
 
-  Update* _update = nullptr;
-  Render* _render = nullptr;
+  Update _update;
+  Render _render;
 };

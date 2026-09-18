@@ -10,14 +10,21 @@ Matrix::Matrix(
       HEIGHT,
       config.dataPin
     ),
-    _brightness(config.brightness) {
+    _brightness(
+      config.brightness
+    ) {
 
-  if (_brightness > MAX_BRIGHTNESS) {
-    _brightness = MAX_BRIGHTNESS;
+  if (
+    _brightness >
+    MAX_BRIGHTNESS
+  ) {
+    _brightness =
+      MAX_BRIGHTNESS;
   }
 }
 
 
+// Initialisiert die LED-Matrix und leert alle Pixel.
 void Matrix::setup() {
   _display.begin();
 
@@ -28,66 +35,101 @@ void Matrix::setup() {
 }
 
 
+// Löscht alle Pixel der Matrix.
 void Matrix::clear() {
   _display.fillScreen(0);
 }
 
 
+// Zeichnet einen Pixel an der angegebenen Core-Position.
 void Matrix::drawPixel(
   Position position,
   Color color
 ) {
   const Position displayPosition =
-    toDisplayPosition(position);
+    toDisplayPosition(
+      position
+    );
 
   _display.drawPixel(
     displayPosition.x,
     displayPosition.y,
-    toDisplayColor(color)
+    toDisplayColor(
+      color
+    )
   );
 }
 
 
+// Zeichnet mehrere Pixel mit derselben Farbe.
+void Matrix::drawPixels(
+  const std::vector<Position>& positions,
+  Color color
+) {
+  for (
+    const auto& position :
+    positions
+  ) {
+    drawPixel(
+      position,
+      color
+    );
+  }
+}
+
+
+// Überträgt den aktuellen Pixelzustand auf die LEDs.
 void Matrix::show() {
   _display.show();
 }
 
 
-void Matrix::brightness(uint8_t value) {
-  if (value > MAX_BRIGHTNESS) {
-    value = MAX_BRIGHTNESS;
+// Ändert die Helligkeit der Matrix.
+void Matrix::brightness(
+  uint8_t value
+) {
+  if (
+    value >
+    MAX_BRIGHTNESS
+  ) {
+    value =
+      MAX_BRIGHTNESS;
   }
 
-  _brightness = value;
+  _brightness =
+    value;
 
   applyBrightness();
 
-  // NeoPixel brightness wird erst mit show()
-  // auf die LEDs übertragen.
   _display.show();
 }
 
 
+// Liefert die aktuelle Helligkeit zurück.
 uint8_t Matrix::brightness() const {
   return _brightness;
 }
 
 
+// Liefert direkten Zugriff auf die zugrunde liegende NeoMatrix.
 Adafruit_NeoMatrix& Matrix::display() {
   return _display;
 }
 
 
+// Wandelt eine mathematische Core-Position in Display-Koordinaten um.
 Position Matrix::toDisplayPosition(
   Position position
 ) const {
   return {
     .x = position.x,
-    .y = HEIGHT - 1 - position.y
+    .y =
+      HEIGHT - 1 - position.y
   };
 }
 
 
+// Wandelt eine Core-Farbe in das interne Matrixformat um.
 uint16_t Matrix::toDisplayColor(
   Color color
 ) {
@@ -99,10 +141,13 @@ uint16_t Matrix::toDisplayColor(
 }
 
 
+// Überträgt die logische Helligkeit auf die NeoMatrix.
 void Matrix::applyBrightness() {
   const uint8_t hardwareBrightness =
     static_cast<uint8_t>(
-      (_brightness * 255)
+      (
+        _brightness * 255
+      )
       / MAX_BRIGHTNESS
     );
 

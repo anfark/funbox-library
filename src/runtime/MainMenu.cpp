@@ -1,6 +1,7 @@
 #include "MainMenu.h"
 
 
+// Erzeugt ein Hauptmenü für Display und Stick.
 MainMenu::MainMenu(
   Screen& screen,
   Stick& stick
@@ -10,6 +11,7 @@ MainMenu::MainMenu(
 }
 
 
+// Setzt das Hauptmenü auf seinen Startzustand zurück.
 void MainMenu::start() {
   _selectedIndex = 0;
   _selectionReady = false;
@@ -18,30 +20,38 @@ void MainMenu::start() {
 }
 
 
+// Verarbeitet die aktuellen Eingaben des Hauptmenüs.
 void MainMenu::update() {
   handleInput();
 }
 
 
+// Setzt die Liste der installierten Spiele.
 void MainMenu::setGames(
-  GameDescription* const* games,
+  const GameRegistration* games,
   uint8_t gameCount
 ) {
   _games = games;
   _gameCount = gameCount;
 
-  if (_selectedIndex >= _gameCount) {
+  if (
+    _selectedIndex >=
+    _gameCount
+  ) {
     _selectedIndex = 0;
   }
 }
 
 
+// Prüft, ob ein Spiel ausgewählt wurde.
 bool MainMenu::hasSelection() const {
   return _selectionReady;
 }
 
 
-GameDescription* MainMenu::selectedGame() const {
+// Liefert das aktuell ausgewählte Spiel.
+const GameRegistration*
+MainMenu::selectedGame() const {
   if (
     !_selectionReady ||
     _games == nullptr ||
@@ -50,23 +60,33 @@ GameDescription* MainMenu::selectedGame() const {
     return nullptr;
   }
 
-  return _games[_selectedIndex];
+  return &_games[
+    _selectedIndex
+  ];
 }
 
 
+// Verarbeitet die Stick-Events des Hauptmenüs.
 void MainMenu::handleInput() {
-  if (_gameCount == 0) {
+  if (
+    _gameCount == 0
+  ) {
     return;
   }
 
-  for (const auto& event : _stick.events()) {
+  for (
+    const auto& event :
+    _stick.events()
+  ) {
     if (!event.isPressed) {
       continue;
     }
 
     switch (event.key) {
       case StickKey::UP:
-        if (_selectedIndex == 0) {
+        if (
+          _selectedIndex == 0
+        ) {
           _selectedIndex =
             _gameCount - 1;
         }
@@ -108,6 +128,7 @@ void MainMenu::handleInput() {
 }
 
 
+// Zeichnet die Liste der installierten Spiele.
 void MainMenu::draw() {
   auto& display =
     _screen.display();
@@ -115,8 +136,18 @@ void MainMenu::draw() {
   display.clearDisplay();
 
   display.setTextSize(1);
-  display.setCursor(0, 0);
-  display.println("FUNBOX");
+  display.setTextColor(
+    SSD1306_WHITE
+  );
+
+  display.setCursor(
+    0,
+    0
+  );
+
+  display.println(
+    "FUNBOX"
+  );
 
   display.drawLine(
     0,
@@ -126,7 +157,10 @@ void MainMenu::draw() {
     SSD1306_WHITE
   );
 
-  if (_gameCount == 0) {
+
+  if (
+    _gameCount == 0
+  ) {
     display.setCursor(
       0,
       20
@@ -180,14 +214,20 @@ void MainMenu::draw() {
       gameIndex ==
       _selectedIndex
     ) {
-      display.print("> ");
+      display.print(
+        "> "
+      );
     }
     else {
-      display.print("  ");
+      display.print(
+        "  "
+      );
     }
 
     display.println(
-      _games[gameIndex]->name()
+      _games[
+        gameIndex
+      ].name
     );
   }
 

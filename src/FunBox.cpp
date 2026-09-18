@@ -3,25 +3,34 @@
 #include <Arduino.h>
 
 
+// Erzeugt eine FunBox mit der Standardkonfiguration.
 FunBox::FunBox()
-  : FunBox(DEFAULT_FUNBOX_CONFIG) {
+  : FunBox(
+      DEFAULT_FUNBOX_CONFIG
+    ) {
 }
 
 
-FunBox::FunBox(const FunBoxConfig& config)
+// Erzeugt eine FunBox mit der angegebenen Konfiguration.
+FunBox::FunBox(
+  const FunBoxConfig& config
+)
   : _stick(config.stick),
     _matrix(config.matrix),
     _screen(config.screen),
     _audio(config.audio),
+
     _bootSequence(
       _screen,
       _matrix,
       _audio
     ),
+
     _mainMenu(
       _screen,
       _stick
     ),
+
     _settings(
       _screen,
       _stick,
@@ -31,11 +40,13 @@ FunBox::FunBox(const FunBoxConfig& config)
 }
 
 
+// Initialisiert Hardware und startet die Bootsequenz.
 void FunBox::setup() {
   _stick.setup();
   _matrix.setup();
   _screen.setup();
   _audio.setup();
+
   _settings.setup();
 
   _mainMenu.setGames(
@@ -47,11 +58,14 @@ void FunBox::setup() {
 }
 
 
+// Aktualisiert Hardware und den aktuellen FunBox-Zustand.
 void FunBox::update() {
   _stick.update();
   _audio.update();
 
-  if (processSystemInput()) {
+  if (
+    processSystemInput()
+  ) {
     return;
   }
 
@@ -79,60 +93,69 @@ void FunBox::update() {
 }
 
 
-bool FunBox::addGame(
-  GameDescription& game
-) {
-  if (_gameCount >= MAX_GAMES) {
-    return false;
-  }
-
-  _games[_gameCount] = &game;
-  ++_gameCount;
-
-  _mainMenu.setGames(
-    _games,
-    _gameCount
-  );
-
-  return true;
+// Bündelt die Spielhardware in einer gemeinsamen Struktur.
+GameDevices FunBox::devices() {
+  return {
+    .matrix = _matrix,
+    .screen = _screen,
+    .audio = _audio
+  };
 }
 
 
+// Liefert Zugriff auf den Stick.
 Stick& FunBox::stick() {
   return _stick;
 }
 
 
+// Liefert Zugriff auf die Matrix.
 Matrix& FunBox::matrix() {
   return _matrix;
 }
 
 
+// Liefert Zugriff auf das Display.
 Screen& FunBox::screen() {
   return _screen;
 }
 
 
+// Liefert Zugriff auf die Audioausgabe.
 Audio& FunBox::audio() {
   return _audio;
 }
 
 
+// Verarbeitet globale Systemtasten.
 bool FunBox::processSystemInput() {
-  for (const auto& event : _stick.events()) {
+  for (
+    const auto& event :
+    _stick.events()
+  ) {
     if (!event.isPressed) {
       continue;
     }
 
-    if (event.key == StickKey::RESET) {
+    if (
+      event.key ==
+      StickKey::RESET
+    ) {
       enterBoot();
       return true;
     }
 
-    if (event.key == StickKey::SET) {
-      if (_state == FunBoxState::Settings) {
+    if (
+      event.key ==
+      StickKey::SET
+    ) {
+      if (
+        _state ==
+        FunBoxState::Settings
+      ) {
         closeSettings();
-      } else {
+      }
+      else {
         enterSettings();
       }
 
@@ -144,38 +167,56 @@ bool FunBox::processSystemInput() {
 }
 
 
+// Aktualisiert die Bootsequenz.
 void FunBox::updateBoot() {
   _bootSequence.update();
 
-  if (_bootSequence.finished()) {
+  if (
+    _bootSequence.finished()
+  ) {
     enterMainMenu();
   }
 }
 
 
+// Aktualisiert das Hauptmenü und startet eine Auswahl.
 void FunBox::updateMainMenu() {
   _mainMenu.update();
 
-  if (!_mainMenu.hasSelection()) {
+  if (
+    !_mainMenu.hasSelection()
+  ) {
     return;
   }
 
-  GameDescription* game =
+  const GameRegistration* game =
     _mainMenu.selectedGame();
 
-  if (game != nullptr) {
-    enterGame(*game);
+  if (
+    game != nullptr
+  ) {
+    enterGame(
+      *game
+    );
   }
 }
 
 
+// Aktualisiert Eingaben und Ticks des aktiven Spiels.
 void FunBox::updateGame() {
-  if (_activeGame == nullptr) {
+  if (
+    _activeGame ==
+    nullptr
+  ) {
     enterMainMenu();
     return;
   }
 
-  for (const auto& event : _stick.events()) {
+
+  for (
+    const auto& event :
+    _stick.events()
+  ) {
     if (!event.isPressed) {
       continue;
     }
@@ -215,7 +256,9 @@ void FunBox::updateGame() {
         break;
     }
 
-    if (_activeGame->isOver()) {
+    if (
+      _activeGame->isOver()
+    ) {
       enterGameOver();
       return;
     }
@@ -226,31 +269,42 @@ void FunBox::updateGame() {
     millis();
 
   if (
-    now - _lastGameTick >=
+    now - _lastGameTick <
     TICK_INTERVAL_MS
   ) {
-    _lastGameTick = now;
+    return;
+  }
 
-    _activeGame->tick();
+  _lastGameTick = now;
 
-    if (_activeGame->isOver()) {
-      enterGameOver();
-      return;
-    }
+  _activeGame->tick();
+
+  if (
+    _activeGame->isOver()
+  ) {
+    enterGameOver();
   }
 }
 
 
+// Wartet nach Game Over auf MID.
 void FunBox::updateGameOver() {
-  if (_activeGame == nullptr) {
+  if (
+    _activeGame ==
+    nullptr
+  ) {
     enterMainMenu();
     return;
   }
 
-  for (const auto& event : _stick.events()) {
+  for (
+    const auto& event :
+    _stick.events()
+  ) {
     if (
       event.isPressed &&
-      event.key == StickKey::MID
+      event.key ==
+        StickKey::MID
     ) {
       enterMainMenu();
       return;
@@ -259,15 +313,18 @@ void FunBox::updateGameOver() {
 }
 
 
+// Aktualisiert das Einstellungsmenü.
 void FunBox::updateSettings() {
   _settings.update();
 }
 
 
+// Wechselt zur Bootsequenz.
 void FunBox::enterBoot() {
   stopActiveGame();
 
-  _state = FunBoxState::Boot;
+  _state =
+    FunBoxState::Boot;
 
   _audio.stop();
 
@@ -276,10 +333,14 @@ void FunBox::enterBoot() {
 }
 
 
+// Wechselt zurück in das Hauptmenü.
 void FunBox::enterMainMenu() {
   stopActiveGame();
 
   _audio.stop();
+
+  _matrix.clear();
+  _matrix.show();
 
   _state =
     FunBoxState::MainMenu;
@@ -288,13 +349,20 @@ void FunBox::enterMainMenu() {
 }
 
 
+// Erzeugt und startet ein registriertes Spiel.
 void FunBox::enterGame(
-  GameDescription& description
+  const GameRegistration& registration
 ) {
-  _activeGame =
-    &description.game();
+  stopActiveGame();
 
-  _activeGame->reset();
+  _activeRegistration =
+    &registration;
+
+  _activeGame =
+    registration.create(
+      _gameStorage,
+      devices()
+    );
 
   _lastGameTick =
     millis();
@@ -306,12 +374,21 @@ void FunBox::enterGame(
 }
 
 
+// Wechselt in den terminalen Game-Over-Zustand.
 void FunBox::enterGameOver() {
   _state =
     FunBoxState::GameOver;
+
+  if (
+    _activeGame !=
+    nullptr
+  ) {
+    _activeGame->renderGameOver();
+  }
 }
 
 
+// Öffnet das Einstellungsmenü.
 void FunBox::enterSettings() {
   if (
     _state ==
@@ -330,11 +407,15 @@ void FunBox::enterSettings() {
 }
 
 
+// Schließt die Einstellungen und stellt den vorherigen Zustand wieder her.
 void FunBox::closeSettings() {
-  switch (_stateBeforeSettings) {
+  switch (
+    _stateBeforeSettings
+  ) {
     case FunBoxState::MainMenu:
       enterMainMenu();
       break;
+
 
     case FunBoxState::Game:
       _state =
@@ -343,23 +424,34 @@ void FunBox::closeSettings() {
       _lastGameTick =
         millis();
 
-      _activeGame->render();
-
-      break;
-
-    case FunBoxState::GameOver:
-      _state =
-        FunBoxState::GameOver;
-
-      if (_activeGame != nullptr) {
+      if (
+        _activeGame !=
+        nullptr
+      ) {
         _activeGame->render();
       }
 
       break;
 
+
+    case FunBoxState::GameOver:
+      _state =
+        FunBoxState::GameOver;
+
+      if (
+        _activeGame !=
+        nullptr
+      ) {
+        _activeGame->renderGameOver();
+      }
+
+      break;
+
+
     case FunBoxState::Boot:
       enterBoot();
       break;
+
 
     case FunBoxState::Settings:
       enterMainMenu();
@@ -368,6 +460,17 @@ void FunBox::closeSettings() {
 }
 
 
+// Zerstört die aktuell laufende Spielinstanz.
 void FunBox::stopActiveGame() {
+  if (
+    _activeGame != nullptr &&
+    _activeRegistration != nullptr
+  ) {
+    _activeRegistration->destroy(
+      _activeGame
+    );
+  }
+
   _activeGame = nullptr;
+  _activeRegistration = nullptr;
 }
