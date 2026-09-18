@@ -15,8 +15,11 @@ enum class StickKey: uint8_t {
   COUNT
 };
 
+
+
 static constexpr uint8_t STICK_COUNT =
   static_cast<uint8_t>(StickKey::COUNT);
+
 
 inline const char* toString(StickKey key) {
   switch (key) {

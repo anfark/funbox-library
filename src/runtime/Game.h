@@ -1,18 +1,20 @@
 #pragma once
 
-class FunBox;
+#include "core/Direction.h"
 
 class Game {
 public:
-  explicit Game(const char* name);
-  virtual ~Game() = default;
+    explicit Game(const char* name);
+    virtual ~Game() = default;
 
-  const char* name() const;
+    const char* name() const;
 
-  virtual void start(FunBox& box) = 0;
-  virtual void update(FunBox& box) = 0;
-  virtual void stop(FunBox& box) = 0;
+    virtual void direction(Direction direction) = 0;
+    virtual void click() = 0;
+    virtual void tick() = 0;
+
+    virtual bool isOver() const = 0;
 
 private:
-  const char* _name;
+    const char* _name;
 };
