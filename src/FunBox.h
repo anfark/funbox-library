@@ -4,6 +4,7 @@
 
 #include "core/Direction.h"
 #include "core/Position.h"
+#include "core/Color.h"
 #include "core/Size.h"
 
 #include "hardware/Audio.h"
