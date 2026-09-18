@@ -4,7 +4,8 @@
 
 #include "hardware/Screen.h"
 #include "hardware/Stick.h"
-#include "runtime/Game.h"
+#include "runtime/GameDescription.h"
+
 
 class MainMenu {
 public:
@@ -17,18 +18,18 @@ public:
   void update();
 
   void setGames(
-    Game* const* games,
+    GameDescription* const* games,
     uint8_t gameCount
   );
 
   bool hasSelection() const;
-  Game* selectedGame() const;
+  GameDescription* selectedGame() const;
 
 private:
   Screen& _screen;
   Stick& _stick;
 
-  Game* const* _games = nullptr;
+  GameDescription* const* _games = nullptr;
   uint8_t _gameCount = 0;
 
   uint8_t _selectedIndex = 0;

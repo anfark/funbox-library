@@ -2,9 +2,10 @@
 
 #include <Arduino.h>
 #include <stdint.h>
-#include <functional>
+#include <vector>
 
-enum class StickKey: uint8_t {
+
+enum class StickKey : uint8_t {
   UP,
   DOWN,
   LEFT,
@@ -14,7 +15,6 @@ enum class StickKey: uint8_t {
   RESET,
   COUNT
 };
-
 
 
 static constexpr uint8_t STICK_COUNT =
@@ -34,42 +34,46 @@ inline const char* toString(StickKey key) {
   }
 }
 
+
 struct StickEvent {
   StickKey key;
   bool isPressed;
 
   String toString() const {
     return String(::toString(key))
-         + " "
-         + (isPressed ? "pressed" : "released");
+      + " "
+      + (isPressed ? "pressed" : "released");
   }
 };
 
+
 struct StickPin {
-  uint8_t up, down, left, right, mid, set, reset;
+  uint8_t up;
+  uint8_t down;
+  uint8_t left;
+  uint8_t right;
+  uint8_t mid;
+  uint8_t set;
+  uint8_t reset;
 };
 
-
-
-//typedef void (*StickEvent)(const bool isPressed);
-using StickListener = std::function<void(const StickEvent&)>;
 
 class Stick {
 public:
   explicit Stick(StickPin pin);
 
   void setup();
-
   void update();
 
   bool isPressed(StickKey key) const;
 
-  void listen(StickListener listener);
+  const std::vector<StickEvent>& events() const;
 
 private:
   uint8_t _pins[STICK_COUNT];
   bool _states[STICK_COUNT] = {};
-  StickListener _listener = nullptr;
+
+  std::vector<StickEvent> _events;
 
   void readInputs(bool states[STICK_COUNT]);
   void triggerEvents(const bool states[STICK_COUNT]);

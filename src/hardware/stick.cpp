@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 
+
 Stick::Stick(StickPin pin)
   : _pins{
       pin.up,
@@ -11,7 +12,9 @@ Stick::Stick(StickPin pin)
       pin.mid,
       pin.set,
       pin.reset
-    } {}
+    } {
+}
+
 
 void Stick::setup() {
   for (uint8_t i = 0; i < STICK_COUNT; i++) {
@@ -19,32 +22,47 @@ void Stick::setup() {
     _states[i] = false;
   }
 
-  // Initialzustand lesen, damit beim Start keine falschen Events feuern
+  // Initialzustand lesen, damit beim Start
+  // keine falschen Events erzeugt werden.
   readInputs(_states);
 }
 
+
 void Stick::update() {
+  _events.clear();
+
   bool newStates[STICK_COUNT] = {};
+
   readInputs(newStates);
   triggerEvents(newStates);
 }
+
 
 bool Stick::isPressed(StickKey key) const {
   return _states[indexOf(key)];
 }
 
-void Stick::listen(StickListener listener) {
-  _listener = listener;
+
+const std::vector<StickEvent>& Stick::events() const {
+  return _events;
 }
 
-void Stick::readInputs(bool states[STICK_COUNT]) {
+
+void Stick::readInputs(
+  bool states[STICK_COUNT]
+) {
   for (uint8_t i = 0; i < STICK_COUNT; i++) {
-    // INPUT_PULLUP: gedrückt = LOW
-    states[i] = digitalRead(_pins[i]) == LOW;
+    // INPUT_PULLUP:
+    // gedrückt = LOW
+    states[i] =
+      digitalRead(_pins[i]) == LOW;
   }
 }
 
-void Stick::triggerEvents(const bool states[STICK_COUNT]) {
+
+void Stick::triggerEvents(
+  const bool states[STICK_COUNT]
+) {
   for (uint8_t i = 0; i < STICK_COUNT; i++) {
     if (states[i] == _states[i]) {
       continue;
@@ -52,14 +70,13 @@ void Stick::triggerEvents(const bool states[STICK_COUNT]) {
 
     _states[i] = states[i];
 
-    if (_listener) {
-      _listener(StickEvent{
-        .key = static_cast<StickKey>(i),
-        .isPressed = _states[i],
-      });
-    }
+    _events.push_back({
+      .key = static_cast<StickKey>(i),
+      .isPressed = _states[i],
+    });
   }
 }
+
 
 uint8_t Stick::indexOf(StickKey key) {
   return static_cast<uint8_t>(key);

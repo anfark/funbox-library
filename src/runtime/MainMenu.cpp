@@ -1,5 +1,6 @@
 #include "MainMenu.h"
 
+
 MainMenu::MainMenu(
   Screen& screen,
   Stick& stick
@@ -8,6 +9,7 @@ MainMenu::MainMenu(
     _stick(stick) {
 }
 
+
 void MainMenu::start() {
   _selectedIndex = 0;
   _selectionReady = false;
@@ -15,12 +17,14 @@ void MainMenu::start() {
   draw();
 }
 
+
 void MainMenu::update() {
   handleInput();
 }
 
+
 void MainMenu::setGames(
-  Game* const* games,
+  GameDescription* const* games,
   uint8_t gameCount
 ) {
   _games = games;
@@ -31,11 +35,13 @@ void MainMenu::setGames(
   }
 }
 
+
 bool MainMenu::hasSelection() const {
   return _selectionReady;
 }
 
-Game* MainMenu::selectedGame() const {
+
+GameDescription* MainMenu::selectedGame() const {
   if (
     !_selectionReady ||
     _games == nullptr ||
@@ -46,6 +52,7 @@ Game* MainMenu::selectedGame() const {
 
   return _games[_selectedIndex];
 }
+
 
 void MainMenu::handleInput() {
   if (_gameCount == 0) {
@@ -76,6 +83,7 @@ void MainMenu::handleInput() {
     _selectionReady = true;
   }
 }
+
 
 void MainMenu::draw() {
   auto& display = _screen.display();
