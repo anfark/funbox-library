@@ -3,40 +3,56 @@
 #include <variant>
 #include <vector>
 
+#include "hardware/Audio.h"
+#include "hardware/Matrix.h"
+#include "hardware/Screen.h"
 
-template<
-    typename Derived,
-    typename State,
-    typename Event
->
+
 class GameRender {
 public:
-    using Events = std::vector<Event>;
+  GameRender(
+    Matrix& matrix,
+    Screen& screen,
+    Audio& audio
+  )
+    : matrix(matrix),
+      screen(screen),
+      audio(audio) {
+  }
 
-    void render(
-        const State& state,
-        const Events& events
-    ) {
-        auto& self =
-            static_cast<Derived&>(*this);
-
-        if constexpr (requires {
-            self.didChange(state);
-        }) {
-            self.didChange(state);
-        }
-
-        for (const auto& event : events) {
-            std::visit(
-                [&self](const auto& value) {
-                    if constexpr (requires {
-                        self.didTrigger(value);
-                    }) {
-                        self.didTrigger(value);
-                    }
-                },
-                event
-            );
-        }
-    }
+protected:
+  Matrix& matrix;
+  Screen& screen;
+  Audio& audio;
 };
+
+
+template<
+  typename Renderer,
+  typename State,
+  typename Event
+>
+void renderGame(
+  Renderer& renderer,
+  const State& state,
+  const std::vector<Event>& events
+) {
+  if constexpr (requires {
+    renderer.state(state);
+  }) {
+    renderer.state(state);
+  }
+
+  for (const auto& event : events) {
+    std::visit(
+      [&renderer](const auto& value) {
+        if constexpr (requires {
+          renderer.event(value);
+        }) {
+          renderer.event(value);
+        }
+      },
+      event
+    );
+  }
+}

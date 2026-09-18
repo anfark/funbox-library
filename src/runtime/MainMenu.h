@@ -23,7 +23,9 @@ public:
   );
 
   bool hasSelection() const;
+
   GameDescription* selectedGame() const;
+
 
 private:
   Screen& _screen;

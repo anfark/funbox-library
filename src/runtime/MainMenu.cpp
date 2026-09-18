@@ -59,34 +59,58 @@ void MainMenu::handleInput() {
     return;
   }
 
-  if (_stick.isPressed(StickKey::UP)) {
-    if (_selectedIndex == 0) {
-      _selectedIndex = _gameCount - 1;
-    } else {
-      _selectedIndex--;
+  for (const auto& event : _stick.events()) {
+    if (!event.isPressed) {
+      continue;
     }
 
-    draw();
-  }
+    switch (event.key) {
+      case StickKey::UP:
+        if (_selectedIndex == 0) {
+          _selectedIndex =
+            _gameCount - 1;
+        }
+        else {
+          --_selectedIndex;
+        }
 
-  if (_stick.isPressed(StickKey::DOWN)) {
-    _selectedIndex++;
+        draw();
+        break;
 
-    if (_selectedIndex >= _gameCount) {
-      _selectedIndex = 0;
+
+      case StickKey::DOWN:
+        ++_selectedIndex;
+
+        if (
+          _selectedIndex >=
+          _gameCount
+        ) {
+          _selectedIndex = 0;
+        }
+
+        draw();
+        break;
+
+
+      case StickKey::MID:
+        _selectionReady = true;
+        return;
+
+
+      case StickKey::LEFT:
+      case StickKey::RIGHT:
+      case StickKey::SET:
+      case StickKey::RESET:
+      case StickKey::COUNT:
+        break;
     }
-
-    draw();
-  }
-
-  if (_stick.isPressed(StickKey::MID)) {
-    _selectionReady = true;
   }
 }
 
 
 void MainMenu::draw() {
-  auto& display = _screen.display();
+  auto& display =
+    _screen.display();
 
   display.clearDisplay();
 
@@ -103,31 +127,47 @@ void MainMenu::draw() {
   );
 
   if (_gameCount == 0) {
-    display.setCursor(0, 20);
-    display.println("No games installed");
+    display.setCursor(
+      0,
+      20
+    );
+
+    display.println(
+      "No games installed"
+    );
 
     display.display();
     return;
   }
 
+
   constexpr uint8_t MAX_VISIBLE_GAMES = 5;
 
   uint8_t firstVisible = 0;
 
-  if (_selectedIndex >= MAX_VISIBLE_GAMES) {
+  if (
+    _selectedIndex >=
+    MAX_VISIBLE_GAMES
+  ) {
     firstVisible =
-      _selectedIndex - MAX_VISIBLE_GAMES + 1;
+      _selectedIndex -
+      MAX_VISIBLE_GAMES +
+      1;
   }
+
 
   for (
     uint8_t row = 0;
     row < MAX_VISIBLE_GAMES;
-    row++
+    ++row
   ) {
     const uint8_t gameIndex =
       firstVisible + row;
 
-    if (gameIndex >= _gameCount) {
+    if (
+      gameIndex >=
+      _gameCount
+    ) {
       break;
     }
 
@@ -136,9 +176,13 @@ void MainMenu::draw() {
       16 + row * 9
     );
 
-    if (gameIndex == _selectedIndex) {
+    if (
+      gameIndex ==
+      _selectedIndex
+    ) {
       display.print("> ");
-    } else {
+    }
+    else {
       display.print("  ");
     }
 

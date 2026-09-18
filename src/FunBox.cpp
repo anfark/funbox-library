@@ -182,19 +182,27 @@ void FunBox::updateGame() {
 
     switch (event.key) {
       case StickKey::UP:
-        _activeGame->move(Direction::Up);
+        _activeGame->move(
+          Direction::Up
+        );
         break;
 
       case StickKey::DOWN:
-        _activeGame->move(Direction::Down);
+        _activeGame->move(
+          Direction::Down
+        );
         break;
 
       case StickKey::LEFT:
-        _activeGame->move(Direction::Left);
+        _activeGame->move(
+          Direction::Left
+        );
         break;
 
       case StickKey::RIGHT:
-        _activeGame->move(Direction::Right);
+        _activeGame->move(
+          Direction::Right
+        );
         break;
 
       case StickKey::MID:
@@ -213,10 +221,13 @@ void FunBox::updateGame() {
     }
   }
 
-  const uint32_t now = millis();
+
+  const uint32_t now =
+    millis();
 
   if (
-    now - _lastGameTick >= TICK_INTERVAL_MS
+    now - _lastGameTick >=
+    TICK_INTERVAL_MS
   ) {
     _lastGameTick = now;
 
@@ -236,13 +247,15 @@ void FunBox::updateGameOver() {
     return;
   }
 
-  // Keine weiteren Actions oder Ticks.
-  //
-  // Der letzte vom Spiel gerenderte Zustand
-  // bleibt dadurch erhalten.
-  //
-  // Hier können wir später zusätzlich einen
-  // Game-Over-Bildschirm / Overlay behandeln.
+  for (const auto& event : _stick.events()) {
+    if (
+      event.isPressed &&
+      event.key == StickKey::MID
+    ) {
+      enterMainMenu();
+      return;
+    }
+  }
 }
 
 
@@ -266,7 +279,10 @@ void FunBox::enterBoot() {
 void FunBox::enterMainMenu() {
   stopActiveGame();
 
-  _state = FunBoxState::MainMenu;
+  _audio.stop();
+
+  _state =
+    FunBoxState::MainMenu;
 
   _mainMenu.start();
 }
@@ -275,30 +291,40 @@ void FunBox::enterMainMenu() {
 void FunBox::enterGame(
   GameDescription& description
 ) {
-  _activeGame = &description.game();
+  _activeGame =
+    &description.game();
 
   _activeGame->reset();
 
-  _lastGameTick = millis();
+  _lastGameTick =
+    millis();
 
-  _state = FunBoxState::Game;
+  _state =
+    FunBoxState::Game;
 
   _activeGame->render();
 }
 
 
 void FunBox::enterGameOver() {
-  _state = FunBoxState::GameOver;
+  _state =
+    FunBoxState::GameOver;
 }
 
 
 void FunBox::enterSettings() {
-  if (_state == FunBoxState::Boot) {
+  if (
+    _state ==
+    FunBoxState::Boot
+  ) {
     return;
   }
 
-  _stateBeforeSettings = _state;
-  _state = FunBoxState::Settings;
+  _stateBeforeSettings =
+    _state;
+
+  _state =
+    FunBoxState::Settings;
 
   _settings.start();
 }
@@ -311,17 +337,19 @@ void FunBox::closeSettings() {
       break;
 
     case FunBoxState::Game:
-      _state = FunBoxState::Game;
+      _state =
+        FunBoxState::Game;
 
-      // Die Zeit in den Settings zählt
-      // nicht zur Spielzeit.
-      _lastGameTick = millis();
+      _lastGameTick =
+        millis();
 
       _activeGame->render();
+
       break;
 
     case FunBoxState::GameOver:
-      _state = FunBoxState::GameOver;
+      _state =
+        FunBoxState::GameOver;
 
       if (_activeGame != nullptr) {
         _activeGame->render();
