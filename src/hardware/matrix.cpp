@@ -30,6 +30,10 @@ void Matrix::setup() {
 
   applyBrightness();
 
+  _display.setRotation(
+    _config.rotation
+  );
+
   clear();
   show();
 }
